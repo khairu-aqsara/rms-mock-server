@@ -2,10 +2,19 @@ const sql = require('mssql');
 const { config } = require('../config/database');
 const optimizationEvents = require('../services/eventEmitter');
 
+// Create a single connection pool for the application
+const pool = new sql.ConnectionPool(config);
+const poolConnect = pool.connect();
+
 class OptimizationModel {
+    static async getConnection() {
+        await poolConnect;
+        return pool;
+    }
+
     static async create(optimizationData) {
         try {
-            const pool = await sql.connect(config);
+            const pool = await this.getConnection();
             
             // First try to check if the table exists
             const checkTable = await pool.request()
